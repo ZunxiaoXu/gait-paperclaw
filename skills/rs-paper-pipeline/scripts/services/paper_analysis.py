@@ -61,12 +61,68 @@ def quality_gate(info: dict, analysis: dict, abstract_zh: str, uploaded_images: 
             errors.append(f"Q{i} 未通过质检")
     return len(errors) == 0, errors
 
+def _strip_reasoning_noise(text: str) -> str:
+    s = (text or "").strip()
+    if not s:
+        return ""
+    markers = [
+        "Analyze the Request:",
+        "**Analyze the Request:**",
+        "Role:",
+        "Task:",
+        "Rules:",
+        "Input:",
+        "Constraint 1:",
+        "Final answer:",
+    ]
+    for marker in markers:
+        idx = s.find(marker)
+        if idx != -1 and idx <= 40:
+            return ""
+    return s
+
+def _clean_translation_output(text: str) -> str:
+    s = _strip_reasoning_noise(text)
+    if not s:
+        return ""
+    s = re.sub(r"^翻译结果[:：]\s*", "", s, flags=re.IGNORECASE)
+    s = re.sub(r"^摘要翻译[:：]\s*", "", s, flags=re.IGNORECASE)
+    if "Analyze the Request:" in s:
+        return ""
+    return s.strip()
+
+def _clean_tldr_output(text: str) -> str:
+    s = _strip_reasoning_noise(text)
+    if not s:
+        return ""
+    s = re.sub(r"^(TL;DR[:：]?\s*)", "", s, flags=re.IGNORECASE)
+    s = re.sub(r"\s+", " ", s).strip()
+    if not s or "Analyze the Request:" in s:
+        return ""
+    sentence = re.split(r"(?<=[。！？!?])\s*", s)[0].strip()
+    return sentence[:80].strip()
+
+def _clean_short_answer(text: str) -> str:
+    s = _strip_reasoning_noise(text)
+    if not s:
+        return ""
+    lines = []
+    for line in s.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if any(token in line for token in ["Analyze the Request", "Constraint", "Source Material", "Question:"]):
+            continue
+        lines.append(line)
+    return "\n".join(lines).strip()
+
 
 def translate_text(text: str) -> str:
     if not text:
         return ""
     template = load_prompt("translate_prompt.md")
-    return call_llm(template.replace("{content}", text), max_tokens=2000, timeout=60)
+    output = call_llm(template.replace("{content}", text), max_tokens=2000, timeout=60)
+    return _clean_translation_output(output)
 
 
 def extract_tags(title: str, abstract: str) -> list[str]:
@@ -95,6 +151,10 @@ def extract_tags(title: str, abstract: str) -> list[str]:
             continue
         if "**" in tag or len(tag) > 40:
             continue
+        if re.search(r"[\.!?。；：:]", tag):
+            continue
+        if len(tag.split()) > 4:
+            continue
         tags.append(tag)
 
     deduped: list[str] = []
@@ -114,10 +174,9 @@ def generate_tldr(title: str, abstract_en: str) -> str:
         f"标题：{title}\n"
         f"摘要：{abstract_en[:1200]}"
     )
-    output = (call_llm(prompt, max_tokens=120, timeout=60) or "").strip()
-    output = re.sub(r"\s+", " ", output)
-    output = re.sub(r"^(TL;DR[:：]?\s*)", "", output, flags=re.IGNORECASE)
-    return output or "面向遥感任务，提出可扩展的推理框架并验证有效性。"
+    output = call_llm(prompt, max_tokens=120, timeout=60) or ""
+    cleaned = _clean_tldr_output(output)
+    return cleaned or "面向步态识别，提出多模态统一基准与识别框架。"
 
 
 def _dedupe_institutions(institutions: list[str]) -> list[str]:
@@ -333,7 +392,7 @@ A10: <回答>
                 f"{'本文主要解决什么问题？' if i==1 else '前人技术路线？' if i==2 else '前人方案的局限性？' if i==3 else '核心思路？' if i==4 else '方法亮点？' if i==5 else '主要贡献？' if i==6 else '实验数据集？' if i==7 else '代码开源？' if i==8 else '客观评价？' if i==9 else '批判审视？'}\n"
                 f"标题：{title}\n作者：{authors}\n摘要：{abstract_en[:1500]}\n正文片段：{pdf_text[:4000]}"
             )
-            repaired = call_llm(repair_prompt, max_tokens=600, timeout=150).strip()
+            repaired = _clean_short_answer(call_llm(repair_prompt, max_tokens=600, timeout=150).strip())
             if repaired and not has_bad_placeholder(repaired):
                 break
         analysis[f"q{i}"] = repaired if repaired else "该问题在论文中信息有限，基于摘要与正文可得出初步结论。"
