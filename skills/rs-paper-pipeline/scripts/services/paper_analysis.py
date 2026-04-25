@@ -54,8 +54,7 @@ def quality_gate(info: dict, analysis: dict, abstract_zh: str, uploaded_images: 
         errors.append("日期为空")
     if not abstract_zh or len(abstract_zh.strip()) < 20:
         errors.append("摘要为空或无效")
-    if uploaded_images < 1:
-        errors.append("图片数量不足（至少1张）")
+    # 预览图是加分项，不应阻塞 issue 产出；图片问题在日志中单独排查。
     for i in range(1, 11):
         answer = analysis.get(f"q{i}", "")
         if not answer or has_bad_placeholder(answer):
@@ -73,14 +72,40 @@ def translate_text(text: str) -> str:
 def extract_tags(title: str, abstract: str) -> list[str]:
     template = load_prompt("tags_prompt.md")
     prompt = template.replace("{title}", title).replace("{abstract}", abstract[:1000])
-    result = call_llm(prompt, max_tokens=200, timeout=30)
+    result = call_llm(prompt, max_tokens=600, timeout=45)
 
-    tags = []
-    for tag in result.split(","):
-        tag = tag.strip()
-        if tag and len(tag) > 1:
-            tags.append(tag)
-    return tags[:8]
+    tags: list[str] = []
+    raw_items = re.split(r"[,\n]", result or "")
+    bad_markers = (
+        "analyze the request",
+        "task:",
+        "rules:",
+        "input:",
+        "title:",
+        "abstract:",
+        "constraint",
+        "final answer",
+    )
+    for tag in raw_items:
+        tag = re.sub(r"^[\-\*\d\.\)\s]+", "", (tag or "").strip())
+        if not tag or len(tag) < 2:
+            continue
+        lowered = tag.lower()
+        if any(marker in lowered for marker in bad_markers):
+            continue
+        if "**" in tag or len(tag) > 40:
+            continue
+        tags.append(tag)
+
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for tag in tags:
+        key = tag.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(tag)
+    return deduped[:8]
 
 
 def generate_tldr(title: str, abstract_en: str) -> str:

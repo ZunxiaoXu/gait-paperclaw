@@ -57,6 +57,7 @@ def handle_figures(arxiv_id: str, pdf_path: Path, repo=None) -> list:
             if candidates:
                 Path(candidates[0]).rename(jpg_path)
             elif not jpg_path.exists():
+                print(f"[FIGURE] FAILED | page={page} | no jpg generated")
                 continue
 
             dest = f"papers/previews/{arxiv_id}/page_{page}.jpg"
@@ -66,10 +67,15 @@ def handle_figures(arxiv_id: str, pdf_path: Path, repo=None) -> list:
                 try:
                     existing = repo.get_contents(dest)
                     repo.update_file(dest, f"Update {arxiv_id} page_{page}.jpg", content, existing.sha)
-                except:
+                except Exception:
                     repo.create_file(dest, f"Add {arxiv_id} page_{page}.jpg", content)
             uploaded.append(page)
-        except Exception:
+        except subprocess.CalledProcessError as exc:
+            stderr = (exc.stderr or b"").decode("utf-8", errors="replace")[:300]
+            print(f"[FIGURE] FAILED | page={page} | pdftoppm failed | {stderr}")
+            continue
+        except Exception as exc:
+            print(f"[FIGURE] FAILED | page={page} | {exc}")
             continue
 
     return uploaded
