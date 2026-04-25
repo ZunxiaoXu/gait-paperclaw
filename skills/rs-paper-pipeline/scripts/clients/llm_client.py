@@ -41,7 +41,14 @@ def call_llm(prompt: str, max_tokens: int = 4096, timeout: int = 300) -> str:
         )
         with urllib.request.urlopen(req, timeout=timeout) as response:
             payload = json.loads(response.read().decode("utf-8"))
-        return payload["choices"][0]["message"]["content"]
+        message = payload["choices"][0].get("message", {})
+        content = message.get("content") or ""
+        if content:
+            return content
+        reasoning_content = message.get("reasoning_content") or ""
+        if reasoning_content:
+            return reasoning_content
+        return ""
     except Exception as exc:
         print(f"    ❌ LLM 调用失败: {exc}")
         return ""
