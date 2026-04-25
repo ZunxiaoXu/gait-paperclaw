@@ -29,8 +29,8 @@ jobs:
     permissions:
       contents: read
     env:
-      GITHUB_TOKEN: ${{ secrets.RS_GITHUB_TOKEN }}
-      BAILIAN_API_KEY: ${{ secrets.BAILIAN_API_KEY }}
+      GITHUB_TOKEN: ${{ secrets.gait_GITHUB_TOKEN }}
+      BAILIAN_API_KEY: ${{ secrets.codex_free_API_KEY }}
       RS_GITHUB_REPO: ${{ vars.RS_GITHUB_REPO }}
       BAILIAN_MODEL: ${{ vars.BAILIAN_MODEL }}
       BAILIAN_API_URL: ${{ vars.BAILIAN_API_URL }}
