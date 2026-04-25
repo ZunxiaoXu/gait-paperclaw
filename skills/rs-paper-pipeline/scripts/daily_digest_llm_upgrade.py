@@ -107,7 +107,10 @@ def main(target_date: str | None = None, stats_json: str | None = None):
 
     dates = sorted(paper_by_date.keys())
     if target_date:
-        dates = [d for d in dates if d == target_date]
+        if target_date in paper_by_date or target_date in stats_map:
+            dates = [target_date]
+        else:
+            dates = []
 
     if not dates:
         print(f"NO_DIGEST_DATE target={target_date or 'ALL'}")
