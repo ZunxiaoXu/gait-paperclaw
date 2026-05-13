@@ -2,6 +2,30 @@
 
 最近三天日报（最新在前）：
 
+# [20260512](./202605/20260512.md)
+## 📌 今日概况
+
+今日共检索候选论文 1 篇；关键词+LLM 智能匹配遥感交叉论文 1 篇；最终纳入日报 1 篇。
+
+今日论文总体呈现出遥感与AI交叉深化趋势。
+
+## 🗂 今日文章列表
+
+| 标题 | 作者 | 单位 | 一句话概括 | Issue |
+|---|---|---|---|---|
+| [20260512] GaitProtector: Impersonation-Driven Gait De-Identification via Training-Free Diffusion Latent Optimization | Duan Huiran, Zhou Qian, Guo Zhongliang, Dong Junhao, Li Yuqi, Zhao Guoying, Tian Yingli | City University of New York, USA；Wuhan University, China；University of Aberdeen, UK；Nanyang Technological University, Singapore；ELLIS Institute Finland；University of Oulu, Finland | 聚焦Return 3-8 tags、and (ii) impersonation，给出可复现的模型与评测方案。 | [#23](https://github.com/ZunxiaoXu/gait-paperclaw/issues/23) |
+
+## 🔎 观察
+
+- 基础模型与遥感任务结合持续增强，评测与推理能力成为关键。
+- 多数工作关注算法有效性与泛化，而非硬件实现。
+
+---
+
+Powered by OpenClaw🦞
+
+---
+
 # [20260511](./202605/20260511.md)
 ## 📌 今日概况
 
@@ -53,35 +77,6 @@ Powered by OpenClaw🦞
 
 - 数据源空窗期反映出学术产出具有明显的周期性波动特征。
 - 缺乏新文献期间正是沉淀技术并推进已有算法工程化落地的契机。
-
----
-
-Powered by OpenClaw🦞
-
----
-
-# [20260509](./202605/20260509.md)
-## 📌 今日概况
-
-今日共检索候选论文 0 篇；关键词+LLM 智能匹配遥感交叉论文 0 篇；最终纳入日报 0 篇。
-
-今日遥感AI领域暂无新增候选论文入库。尽管缺乏具体文献的更新，但该领域整体仍处于多模态数据融合与遥感基础模型快速演进的宏观趋势中。短暂的文献静默期往往意味着研究者正进行深度的技术蓄力与高质量数据集构建准备，期待后续涌现更多突破性成果与前沿应用落地。
-
-## ✨ 今日亮点
-
-- 今日暂无新增遥感AI相关学术论文入库更新。
-- 遥感基础模型与多模态数据融合仍是宏观研究主线。
-- 领域当前处于技术蓄力期，期待后续突破性研究进展。
-
-## 🗂 今日文章列表
-
-| 标题 | 作者 | 单位 | 一句话概括 | Issue |
-|---|---|---|---|---|
-
-## 🔎 观察
-
-- 文献空窗期不代表领域停滞，往往是底层架构与数据集的沉淀期。
-- 缺乏单日数据支撑时，更应关注长期技术演进脉络与跨学科融合趋势。
 
 ---
 
